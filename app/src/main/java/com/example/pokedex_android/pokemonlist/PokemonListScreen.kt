@@ -25,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -146,7 +147,9 @@ fun PokemonList(
         }
         items(itemCount) {
             if(it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
-                viewModel.loadPokemonPaginated()
+                LaunchedEffect(key1 = true) {
+                    viewModel.loadPokemonPaginated() // Look into Compose paging library
+                }
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
@@ -193,7 +196,7 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_details_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
                 )
             }
     ) {

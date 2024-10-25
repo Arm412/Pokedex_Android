@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
 import com.example.pokedex_android.data.models.PokedexListEntry
+import com.example.pokedex_android.pokemonlist.dropdown.RowItemSize
 import com.example.pokedex_android.repository.PokemonRepository
 import com.example.pokedex_android.util.Constants.PAGE_SIZE
 import com.example.pokedex_android.util.Resource
@@ -30,6 +31,7 @@ class PokemonListViewModel @Inject constructor(
     var isLoading = mutableStateOf(false)
     var endReached = mutableStateOf(false)
     var showShiny = mutableStateOf(false)
+    var rowItemSize = mutableStateOf(RowItemSize.MEDIUM)
 
     private var cachedPokemonList = listOf<PokedexListEntry>()
     private var isSearchStarting = true
@@ -114,5 +116,9 @@ class PokemonListViewModel @Inject constructor(
 
     fun toggleShinyImages() {
         showShiny.value = !showShiny.value
+    }
+
+    fun setPokemonListRowItemSize(size: RowItemSize) {
+        rowItemSize.value = size
     }
 }

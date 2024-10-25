@@ -2,6 +2,7 @@ package com.example.pokedex_android.pokemonlist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +56,7 @@ import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
 import com.example.pokedex_android.R
 import com.example.pokedex_android.data.models.PokedexListEntry
+import com.example.pokedex_android.pokemonlist.dropdown.PokemonListDropDownMenu
 import com.example.pokedex_android.ui.theme.RobotoCondensed
 
 @Composable
@@ -138,7 +140,6 @@ fun PokemonListFilterRow(
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
     var shinySwitchChecked by remember { mutableStateOf(false) }
-    var otherSwitchChecked by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -146,7 +147,9 @@ fun PokemonListFilterRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .weight(1f)
         ) {
             Text(text = "Toggle Shiny")
             Switch(
@@ -158,16 +161,13 @@ fun PokemonListFilterRow(
             )
         }
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .weight(1f)
         ) {
-            Text(text = "Toggle Shiny")
-            Switch(
-                checked = otherSwitchChecked,
-                onCheckedChange = {
-                    otherSwitchChecked = it
-//                    viewModel.toggleShinyImages()
-                },
-            )
+            PokemonListDropDownMenu {
+                viewModel.setPokemonListRowItemSize(it)
+            }
         }
     }
 }

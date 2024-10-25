@@ -3,6 +3,7 @@ package com.example.pokedex_android.pokemonlist
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,6 +24,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -79,6 +82,8 @@ fun PokemonListScreen(
             ) {
                 viewModel.searchPokemonList(it)
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            PokemonListFilterRow()
             Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController = navController)
         }
@@ -114,7 +119,7 @@ fun SearchBar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    isHintDisplayed = !it.isFocused && text.isNotEmpty()
+                    isHintDisplayed = !it.isFocused && text.isEmpty()
                 }
         )
         if (isHintDisplayed) {
@@ -123,6 +128,45 @@ fun SearchBar(
                 color = Color.LightGray,
                 modifier = Modifier
                     .padding(horizontal = 20.dp, vertical = 12.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun PokemonListFilterRow(
+    viewModel: PokemonListViewModel = hiltViewModel()
+) {
+    var shinySwitchChecked by remember { mutableStateOf(false) }
+    var otherSwitchChecked by remember { mutableStateOf(false) }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Toggle Shiny")
+            Switch(
+                checked = shinySwitchChecked,
+                onCheckedChange = {
+                    shinySwitchChecked = it
+                    viewModel.toggleShinyImages()
+                },
+            )
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Toggle Shiny")
+            Switch(
+                checked = otherSwitchChecked,
+                onCheckedChange = {
+                    otherSwitchChecked = it
+//                    viewModel.toggleShinyImages()
+                },
             )
         }
     }
@@ -163,7 +207,9 @@ fun PokemonList(
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         if(loadError.isNotEmpty()) {
-            viewModel.loadPokemonPaginated()
+            RetryLoading(error = loadError) {
+                viewModel.loadPokemonPaginated()
+            }
         }
     }
 }
@@ -179,6 +225,7 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
     var dominantColor by remember {
         mutableStateOf(defaultDominantColor)
     }
+    val showShiny by remember { viewModel.showShiny }
 
     Box(
         contentAlignment = Alignment.Center,
@@ -203,7 +250,7 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
         Column {
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(entry.imageUrl)
+                    .data(if (showShiny) entry.shinyImageUrl else entry.imageUrl)
                     .crossfade(true)
                     .build(),
                 contentDescription = entry.pokemonName,

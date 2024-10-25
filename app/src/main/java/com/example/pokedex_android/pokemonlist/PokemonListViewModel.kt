@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
-import kotlin.io.path.fileVisitor
 
 @HiltViewModel
 class PokemonListViewModel @Inject constructor(
@@ -30,6 +29,7 @@ class PokemonListViewModel @Inject constructor(
     var loadError = mutableStateOf("")
     var isLoading = mutableStateOf(false)
     var endReached = mutableStateOf(false)
+    var showShiny = mutableStateOf(false)
 
     private var cachedPokemonList = listOf<PokedexListEntry>()
     private var isSearchStarting = true
@@ -78,12 +78,13 @@ class PokemonListViewModel @Inject constructor(
                             entry.url.takeLastWhile { it.isDigit() }
                         }
                         val url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png"
+                        val shinyUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${number}.png"
                         var name = entry.name.replaceFirstChar {
                             if (it.isLowerCase()) it.titlecase(
                                 Locale.ROOT
                             ) else it.toString()
                         }
-                        PokedexListEntry(name, url, number.toInt())
+                        PokedexListEntry(name, url, shinyUrl, number.toInt())
                     }
                     currentPage++
 
@@ -109,5 +110,9 @@ class PokemonListViewModel @Inject constructor(
                 onFinish(Color(colorValue))
             }
         }
+    }
+
+    fun toggleShinyImages() {
+        showShiny.value = !showShiny.value
     }
 }

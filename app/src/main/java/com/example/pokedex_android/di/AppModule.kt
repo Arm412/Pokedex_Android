@@ -1,5 +1,7 @@
 package com.example.pokedex_android.di
 
+import android.app.Application
+import android.content.Context
 import com.example.pokedex_android.data.remote.PokeApi
 import com.example.pokedex_android.repository.PokemonRepository
 import com.example.pokedex_android.util.Constants.BASE_URL
@@ -15,13 +17,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-
-    @Singleton
-    @Provides
-    fun providePokemonRepository(
-        api: PokeApi
-    ) = PokemonRepository(api)
-
     @Singleton
     @Provides
     fun providePokeApi(): PokeApi {
@@ -31,4 +26,17 @@ object AppModule {
             .build()
             .create(PokeApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideApplicationContext(application: Application): Context {
+        return application.applicationContext
+    }
+
+    @Singleton
+    @Provides
+    fun providePokemonRepository(
+        context: Context,
+        api: PokeApi
+    ) = PokemonRepository(context, api)
 }

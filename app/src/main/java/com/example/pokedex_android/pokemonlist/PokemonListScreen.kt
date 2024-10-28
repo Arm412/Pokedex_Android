@@ -155,7 +155,8 @@ fun PokemonListFilterRow(
     coroutineScope: CoroutineScope,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
-    var shinySwitchChecked by remember { mutableStateOf(false) }
+    val showShiny by remember { viewModel.showShiny }
+    var shinySwitchChecked by remember { mutableStateOf(showShiny) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -271,7 +272,7 @@ fun PokedexEntrySmall(
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${showShiny}"
                 )
             }
     ) {
@@ -309,7 +310,7 @@ fun PokedexEntryMedium(
     modifier: Modifier = Modifier,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
-val defaultDominantColor = MaterialTheme.colorScheme.surface
+    val defaultDominantColor = MaterialTheme.colorScheme.surface
     var dominantColor by remember {
         mutableStateOf(defaultDominantColor)
     }
@@ -331,7 +332,7 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${showShiny}"
                 )
             }
     ) {
@@ -398,7 +399,7 @@ fun PokedexEntryLarge(
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${showShiny}"
                 )
             }
     ) {

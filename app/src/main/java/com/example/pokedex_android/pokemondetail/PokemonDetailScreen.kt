@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -50,9 +51,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.example.pokedex_android.R
 import com.example.pokedex_android.data.remote.responses.Pokemon
-import com.example.pokedex_android.data.remote.responses.Type
 import com.example.pokedex_android.util.Resource
 import com.plcoding.jetpackcomposepokedex.util.parseStatToAbbr
 import com.plcoding.jetpackcomposepokedex.util.parseStatToColor
@@ -64,6 +65,7 @@ import kotlin.math.round
 fun PokemonDetailScreen(
     dominantColor: Color,
     pokemonName: String,
+    showShiny: Boolean,
     navController: NavController,
     topPadding: Dp = 20.dp,
     pokemonImageSize: Dp = 200.dp,
@@ -73,9 +75,17 @@ fun PokemonDetailScreen(
         value = viewModel.getPokemonInfo(pokemonName)
     }.value
 
+    LaunchedEffect(showShiny) {
+        viewModel.showShiny.value = showShiny
+    }
+
+    LaunchedEffect(dominantColor) {
+        viewModel.dominantColor.value = dominantColor
+    }
+
     Box(modifier = Modifier
         .fillMaxSize()
-        .background(dominantColor)
+        .background(viewModel.dominantColor.value)
         .padding(bottom = 16.dp)
     ) {
         PokemonDetailTopSection(
@@ -116,8 +126,14 @@ fun PokemonDetailScreen(
             if(pokemonInfo is Resource.Success) {
                 pokemonInfo.data?.sprites?.let {
                     SubcomposeAsyncImage(
-                        model = it.front_default,
+                        model = (if (viewModel.showShiny.value) it.front_shiny else it.front_default),
                         contentDescription = pokemonInfo.data.name,
+                        success = { success ->
+                            viewModel.calcDominantColor(success.result.drawable) {
+                                viewModel.dominantColor.value = it
+                            }
+                            SubcomposeAsyncImageContent()
+                        },
                         modifier = Modifier
                             .size(pokemonImageSize)
                             .offset(y = topPadding)
@@ -152,7 +168,7 @@ fun PokemonDetailTopSection(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .size(36.dp)
-                .offset(16.dp, 16.dp)
+                .offset(16.dp, 32.dp)
                 .clickable {
                     navController.popBackStack()
                 }
@@ -209,13 +225,27 @@ fun PokemonDetailSection(
             .offset(y = 100.dp)
             .verticalScroll(scrollState)
     ) {
-        Text(
-            text = "#${pokemonInfo.id} ${pokemonName}",
-            fontWeight = FontWeight.Bold,
-            fontSize = 30.sp,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Row {
+            Text(
+                text = "#${pokemonInfo.id} $pokemonName",
+                fontWeight = FontWeight.Bold,
+                fontSize = 35.sp,
+                textAlign = TextAlign.Center,
+                color = if (viewModel.showShiny.value) Color(1f, 0.8f, 0f) else MaterialTheme.colorScheme.onSurface
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_shiny_wand),
+                contentDescription = null,
+                tint = if (viewModel.showShiny.value) Color.Blue else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier
+                    .offset(x = 10.dp)
+                    .size(36.dp)
+                    .clickable {
+                        viewModel.toggleShiny()
+                    }
+
+            )
+        }
         PokemonTypeSection(types = viewModel.localPokemonData.value[pokemonInfo.id - 1].type)
         PokemonDetailDataSection(
             pokemonWeight = pokemonInfo.weight,

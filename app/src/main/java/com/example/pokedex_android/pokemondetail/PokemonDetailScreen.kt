@@ -193,7 +193,8 @@ fun PokemonDetailStateWrapper(
 @Composable
 fun PokemonDetailSection(
     pokemonInfo: Pokemon,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
     val pokemonName = pokemonInfo.name.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(
@@ -215,7 +216,7 @@ fun PokemonDetailSection(
             textAlign = TextAlign.Center,
             color = MaterialTheme.colorScheme.onSurface
         )
-        PokemonTypeSection(types = pokemonInfo.types)
+        PokemonTypeSection(types = viewModel.localPokemonData.value[pokemonInfo.id - 1].type)
         PokemonDetailDataSection(
             pokemonWeight = pokemonInfo.weight,
             pokemonHeight = pokemonInfo.height
@@ -226,7 +227,7 @@ fun PokemonDetailSection(
 
 @Composable
 fun PokemonTypeSection(
-    types: List<Type>
+    types: List<String>
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -243,7 +244,7 @@ fun PokemonTypeSection(
                     .height(35.dp)
             ) {
                 Text(
-                    text = type.type.name.replaceFirstChar {
+                    text = type.replaceFirstChar {
                         if (it.isLowerCase()) it.titlecase(
                             Locale.ROOT
                         ) else it.toString()

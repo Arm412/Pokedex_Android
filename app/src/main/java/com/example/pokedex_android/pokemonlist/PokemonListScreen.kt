@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -31,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,20 +51,27 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import coil.request.ImageRequest
 import com.example.pokedex_android.R
 import com.example.pokedex_android.data.models.PokedexListEntry
+import com.example.pokedex_android.pokemondetail.PokemonTypeSection
+import com.example.pokedex_android.pokemonlist.dropdown.PokemonListDropDownMenu
+import com.example.pokedex_android.pokemonlist.dropdown.RowItemSize
 import com.example.pokedex_android.ui.theme.RobotoCondensed
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun PokemonListScreen(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
     Surface(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
@@ -83,9 +93,15 @@ fun PokemonListScreen(
                 viewModel.searchPokemonList(it)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            PokemonListFilterRow()
+            PokemonListFilterRow(
+                listState = listState,
+                coroutineScope = coroutineScope
+            )
             Spacer(modifier = Modifier.height(16.dp))
-            PokemonList(navController = navController)
+            PokemonList(
+                navController = navController,
+                listState = listState
+            )
         }
     }
 }
@@ -135,10 +151,11 @@ fun SearchBar(
 
 @Composable
 fun PokemonListFilterRow(
+    listState: LazyListState,
+    coroutineScope: CoroutineScope,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
     var shinySwitchChecked by remember { mutableStateOf(false) }
-    var otherSwitchChecked by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -146,7 +163,9 @@ fun PokemonListFilterRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .weight(1f)
         ) {
             Text(text = "Toggle Shiny")
             Switch(
@@ -158,22 +177,24 @@ fun PokemonListFilterRow(
             )
         }
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .weight(1f)
         ) {
-            Text(text = "Toggle Shiny")
-            Switch(
-                checked = otherSwitchChecked,
-                onCheckedChange = {
-                    otherSwitchChecked = it
-//                    viewModel.toggleShinyImages()
-                },
-            )
+            PokemonListDropDownMenu {
+                coroutineScope.launch {
+                    // Animate scroll to the 1st item
+                    listState.animateScrollToItem(index = 0)
+                }
+                viewModel.setPokemonListRowItemSize(it)
+            }
         }
     }
 }
 
 @Composable
 fun PokemonList(
+    listState: LazyListState,
     navController: NavController,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
@@ -182,12 +203,13 @@ fun PokemonList(
     val loadError by remember { viewModel.loadError }
     val isLoading by remember { viewModel.isLoading }
     val isSearching by remember { viewModel.isSearching }
+    val rowItemSize by remember { viewModel.rowItemSize }
 
-    LazyColumn(contentPadding = PaddingValues(16.dp)) {
-        val itemCount = if(pokemonList.size % 2 == 0) {
-            pokemonList.size / 2
+    LazyColumn(contentPadding = PaddingValues(16.dp), state = listState) {
+        val itemCount = if(pokemonList.size % rowItemSize.itemsInRow == 0) { // Row count
+            pokemonList.size / rowItemSize.itemsInRow
         } else {
-            pokemonList.size / 2 + 1
+            pokemonList.size / rowItemSize.itemsInRow + 1 // Fix
         }
         items(itemCount) {
             if(it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
@@ -195,7 +217,13 @@ fun PokemonList(
                     viewModel.loadPokemonPaginated() // Look into Compose paging library
                 }
             }
-            PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
+            if (rowItemSize == RowItemSize.SMALL) {
+                PokedexRowSmall(rowIndex = it, entries = pokemonList, navController = navController)
+            } else if (rowItemSize == RowItemSize.MEDIUM) {
+                PokedexRowMedium(rowIndex = it, entries = pokemonList, navController = navController)
+            } else {
+                PokedexRowLarge(rowIndex = it, entries = pokemonList, navController = navController)
+            }
         }
     }
 
@@ -215,7 +243,67 @@ fun PokemonList(
 }
 
 @Composable
-fun PokedexEntry(
+fun PokedexEntrySmall(
+    entry: PokedexListEntry,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    viewModel: PokemonListViewModel = hiltViewModel()
+) {
+    val defaultDominantColor = MaterialTheme.colorScheme.surface
+    var dominantColor by remember {
+        mutableStateOf(defaultDominantColor)
+    }
+    val showShiny by remember { viewModel.showShiny }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .shadow(5.dp, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10.dp))
+            .aspectRatio(1f)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        dominantColor,
+                        defaultDominantColor
+                    )
+                )
+            )
+            .clickable {
+                navController.navigate(
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                )
+            }
+    ) {
+        Column {
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(if (showShiny) entry.shinyImageUrl else entry.imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = entry.pokemonName,
+                loading = {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.scale(0.5f)
+                    )
+                },
+                success = { success ->
+                    viewModel.calcDominantColor(success.result.drawable) {
+                        dominantColor = it
+                    }
+                    SubcomposeAsyncImageContent()
+                },
+                modifier = Modifier
+                    .size(150.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+        }
+    }
+}
+
+@Composable
+fun PokedexEntryMedium(
     entry: PokedexListEntry,
     navController: NavController,
     modifier: Modifier = Modifier,
@@ -271,7 +359,7 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
                     .align(Alignment.CenterHorizontally)
             )
             Text(
-                text = entry.pokemonName,
+                text = "#${entry.number} ${entry.pokemonName}",
                 fontFamily = RobotoCondensed,
                 fontSize = 20.sp,
                 textAlign = TextAlign.Center,
@@ -282,21 +370,129 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
 }
 
 @Composable
-fun PokedexRow(
+fun PokedexEntryLarge(
+    entry: PokedexListEntry,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+    viewModel: PokemonListViewModel = hiltViewModel()
+) {
+    val defaultDominantColor = MaterialTheme.colorScheme.surface
+    var dominantColor by remember {
+        mutableStateOf(defaultDominantColor)
+    }
+    val showShiny by remember { viewModel.showShiny }
+
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = modifier
+            .shadow(5.dp, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10.dp))
+            .aspectRatio(1f)
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        dominantColor,
+                        defaultDominantColor
+                    )
+                )
+            )
+            .clickable {
+                navController.navigate(
+                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}"
+                )
+            }
+    ) {
+        Column {
+            PokemonTypeSection(
+                types = viewModel.localPokemonData.value[entry.number - 1].type
+            )
+            SubcomposeAsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(if (showShiny) entry.shinyImageUrl else entry.imageUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = entry.pokemonName,
+                loading = {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.scale(0.5f)
+                    )
+                },
+                success = { success ->
+                    viewModel.calcDominantColor(success.result.drawable) {
+                        dominantColor = it
+                    }
+                    SubcomposeAsyncImageContent()
+                },
+                modifier = Modifier
+                    .size(225.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            Text(
+                text = "#${entry.number} ${entry.pokemonName}",
+                fontFamily = RobotoCondensed,
+                fontSize = 40.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun PokedexRowSmall(
     rowIndex: Int,
     entries: List<PokedexListEntry>,
     navController: NavController
 ) {
     Column {
         Row {
-            PokedexEntry(
+            PokedexEntrySmall(
+                entry = entries[rowIndex * 3],
+                navController = navController,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            if (entries.size >= rowIndex * 3 + 2) {
+                PokedexEntrySmall(
+                    entry = entries[rowIndex * 3 + 1],
+                    navController = navController,
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            if (entries.size >= rowIndex * 3 + 3) {
+                PokedexEntrySmall(
+                    entry = entries[rowIndex * 3 + 2],
+                    navController = navController,
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun PokedexRowMedium(
+    rowIndex: Int,
+    entries: List<PokedexListEntry>,
+    navController: NavController
+) {
+    Column {
+        Row {
+            PokedexEntryMedium(
                 entry = entries[rowIndex * 2],
                 navController = navController,
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(16.dp))
             if (entries.size >= rowIndex * 2 + 2) {
-                PokedexEntry(
+                PokedexEntryMedium(
                     entry = entries[rowIndex * 2 + 1],
                     navController = navController,
                     modifier = Modifier.weight(1f)
@@ -305,6 +501,22 @@ fun PokedexRow(
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun PokedexRowLarge(
+    rowIndex: Int,
+    entries: List<PokedexListEntry>,
+    navController: NavController
+) {
+    Column {
+        PokedexEntryLarge(
+            entry = entries[rowIndex],
+            navController = navController,
+            modifier = Modifier
+        )
         Spacer(modifier = Modifier.height(16.dp))
     }
 }

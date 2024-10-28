@@ -29,8 +29,8 @@ import com.example.pokedex_android.ui.theme.TypeSteel
 import com.example.pokedex_android.ui.theme.TypeWater
 import java.util.Locale
 
-fun parseTypeToColor(type: Type): Color {
-    return when(type.type.name.lowercase(Locale.ROOT)) {
+fun parseTypeToColor(type: String): Color {
+    return when(type.lowercase(Locale.ROOT)) {
         "normal" -> TypeNormal
         "fire" -> TypeFire
         "water" -> TypeWater

@@ -2,7 +2,6 @@ package com.example.pokedex_android.pokemonlist
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,7 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -220,7 +218,7 @@ fun PokemonList(
                 }
             }
             if (rowItemSize == RowItemSize.SMALL) {
-//                PokedexRowSmall(rowIndex = it, entries = pokemonList, navController = navController)
+                PokedexRowSmall(rowIndex = it, entries = pokemonList, navController = navController)
             } else if (rowItemSize == RowItemSize.MEDIUM) {
                 PokedexRowMedium(rowIndex = it, entries = pokemonList, navController = navController)
             } else {
@@ -297,7 +295,7 @@ fun PokedexEntrySmall(
                     SubcomposeAsyncImageContent()
                 },
                 modifier = Modifier
-                    .size(75.dp)
+                    .size(150.dp)
                     .align(Alignment.CenterHorizontally)
             )
         }
@@ -361,7 +359,7 @@ val defaultDominantColor = MaterialTheme.colorScheme.surface
                     .align(Alignment.CenterHorizontally)
             )
             Text(
-                text = "${entry.number} ${entry.pokemonName}",
+                text = "#${entry.number} ${entry.pokemonName}",
                 fontFamily = RobotoCondensed,
                 fontSize = 20.sp,
                 textAlign = TextAlign.Center,
@@ -405,9 +403,9 @@ fun PokedexEntryLarge(
             }
     ) {
         Column {
-//            PokemonTypeSection(
-//                types = entry
-//            )
+            PokemonTypeSection(
+                types = viewModel.localPokemonData.value[entry.number - 1].type
+            )
             SubcomposeAsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(if (showShiny) entry.shinyImageUrl else entry.imageUrl)
@@ -427,7 +425,7 @@ fun PokedexEntryLarge(
                     SubcomposeAsyncImageContent()
                 },
                 modifier = Modifier
-                    .size(275.dp)
+                    .size(225.dp)
                     .align(Alignment.CenterHorizontally)
             )
             Text(
@@ -438,6 +436,44 @@ fun PokedexEntryLarge(
                 modifier = Modifier.fillMaxWidth()
             )
         }
+    }
+}
+
+@Composable
+fun PokedexRowSmall(
+    rowIndex: Int,
+    entries: List<PokedexListEntry>,
+    navController: NavController
+) {
+    Column {
+        Row {
+            PokedexEntrySmall(
+                entry = entries[rowIndex * 3],
+                navController = navController,
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            if (entries.size >= rowIndex * 3 + 2) {
+                PokedexEntrySmall(
+                    entry = entries[rowIndex * 3 + 1],
+                    navController = navController,
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            if (entries.size >= rowIndex * 3 + 3) {
+                PokedexEntrySmall(
+                    entry = entries[rowIndex * 3 + 2],
+                    navController = navController,
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
@@ -477,22 +513,6 @@ fun PokedexRowLarge(
 ) {
     Column {
         PokedexEntryLarge(
-            entry = entries[rowIndex],
-            navController = navController,
-            modifier = Modifier
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Composable
-fun PokedexRowSmall(
-    rowIndex: Int,
-    entries: List<PokedexListEntry>,
-    navController: NavController
-) {
-    Column {
-        PokedexEntrySmall(
             entry = entries[rowIndex],
             navController = navController,
             modifier = Modifier

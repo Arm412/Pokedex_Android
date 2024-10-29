@@ -228,7 +228,7 @@ fun PokemonDetailSection(
             .offset(y = 100.dp)
             .verticalScroll(scrollState)
             .padding()
-            .padding(bottom = 100.dp)
+            .padding(bottom = 90.dp)
     ) {
         Row {
             Text(
@@ -344,10 +344,13 @@ fun PokemonDescriptionItem(
             .padding(vertical = 10.dp)
     ) {
         Column {
-            Row {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
                 Text(
                     text = species,
-                    fontSize = 20.sp,
+                    fontSize = 25.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = modifier
                         .padding()

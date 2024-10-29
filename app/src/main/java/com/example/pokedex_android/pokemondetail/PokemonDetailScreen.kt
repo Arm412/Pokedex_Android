@@ -42,6 +42,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -212,6 +213,8 @@ fun PokemonDetailSection(
     modifier: Modifier = Modifier,
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
+    val pokemonInfoLocal = viewModel.localPokemonData.value[pokemonInfo.id - 1]
+
     val pokemonName = pokemonInfo.name.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(
             Locale.ROOT
@@ -224,6 +227,8 @@ fun PokemonDetailSection(
             .fillMaxSize()
             .offset(y = 100.dp)
             .verticalScroll(scrollState)
+            .padding()
+            .padding(bottom = 90.dp)
     ) {
         Row {
             Text(
@@ -250,6 +255,10 @@ fun PokemonDetailSection(
         PokemonDetailDataSection(
             pokemonWeight = pokemonInfo.weight,
             pokemonHeight = pokemonInfo.height
+        )
+        PokemonDescriptionItem(
+            species = pokemonInfoLocal.species,
+            description = pokemonInfoLocal.description
         )
         PokemonBaseStats(pokemonInfo = pokemonInfo)
     }
@@ -320,6 +329,43 @@ fun PokemonDetailDataSection(
             modifier = Modifier
                 .weight(1f)
         )
+    }
+}
+
+@Composable
+fun PokemonDescriptionItem(
+    description: String,
+    species: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .padding()
+            .padding(vertical = 10.dp)
+    ) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = species,
+                    fontSize = 25.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = modifier
+                        .padding()
+                        .padding(vertical = 10.dp)
+                )
+            }
+            Text(
+                text = description,
+                fontSize = 20.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = modifier
+                    .padding()
+                    .padding(vertical = 10.dp)
+            )
+        }
     }
 }
 

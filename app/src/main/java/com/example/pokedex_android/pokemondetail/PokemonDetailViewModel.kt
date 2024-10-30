@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
+import com.example.pokedex_android.data.local.responses.Evolution
 import com.example.pokedex_android.data.remote.responses.Pokemon
 import com.example.pokedex_android.repository.PokemonRepository
 import com.example.pokedex_android.util.Resource
@@ -23,6 +24,12 @@ class PokemonDetailViewModel @Inject constructor(
     var dominantColor = mutableStateOf(Color.White)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
     var showShiny = mutableStateOf(false)
+
+    data class PokemonEvolutionData(
+        val id: Int,
+        val name: String,
+        val image: String,
+    )
 
     init {
         fetchLocalPokemonData()
@@ -42,7 +49,7 @@ class PokemonDetailViewModel @Inject constructor(
         }
     }
 
-    fun fetchLocalPokemonData() {
+    private fun fetchLocalPokemonData() {
         viewModelScope.launch {
             localPokemonData.value = repository.loadPokemonJson()
         }

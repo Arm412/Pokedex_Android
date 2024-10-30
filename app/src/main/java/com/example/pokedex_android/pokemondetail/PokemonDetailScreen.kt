@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,7 @@ import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.pokedex_android.R
+import com.example.pokedex_android.data.local.responses.Evolution
 import com.example.pokedex_android.data.remote.responses.Pokemon
 import com.example.pokedex_android.util.Resource
 import com.plcoding.jetpackcomposepokedex.util.parseStatToAbbr
@@ -256,7 +258,7 @@ fun PokemonDetailSection(
             pokemonWeight = pokemonInfo.weight,
             pokemonHeight = pokemonInfo.height
         )
-        PokemonDescriptionItem(
+        PokemonDescriptionSection(
             species = pokemonInfoLocal.species,
             description = pokemonInfoLocal.description
         )
@@ -333,7 +335,7 @@ fun PokemonDetailDataSection(
 }
 
 @Composable
-fun PokemonDescriptionItem(
+fun PokemonDescriptionSection(
     description: String,
     species: String,
     modifier: Modifier = Modifier
@@ -365,6 +367,75 @@ fun PokemonDescriptionItem(
                     .padding()
                     .padding(vertical = 10.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun PokemonEvolutionSection(
+    evolutionInfo: Evolution,
+    modifier: Modifier = Modifier
+) {
+    if (evolutionInfo.prev.size > 0) {
+    // Previous evolution row
+    }
+    if (evolutionInfo.next.size > 0) {
+    // Next evolution row
+    }
+}
+
+@Composable
+fun PokemonEvolutionItem(
+    isNext: Boolean,
+    evolutionData: List<PokemonDetailViewModel.PokemonEvolutionData>,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = if (isNext) "Next Evolution" else "Previous Evolution"
+            )
+            for (data in evolutionData) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    SubcomposeAsyncImage(
+                        model = (evolutionData[0].image),
+                        contentDescription = evolutionData[0].name,
+                        success = {
+                            SubcomposeAsyncImageContent()
+                        },
+                        modifier = Modifier
+                            .size(50.dp)
+                            .weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        tint = Color.White,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .weight(1f)
+                    )
+                    SubcomposeAsyncImage(
+                        model = (evolutionData[0].image),
+                        contentDescription = evolutionData[0].name,
+                        success = {
+                            SubcomposeAsyncImageContent()
+                        },
+                        modifier = Modifier
+                            .size(50.dp)
+                            .weight(1f)
+                    )
+                }
+            }
         }
     }
 }

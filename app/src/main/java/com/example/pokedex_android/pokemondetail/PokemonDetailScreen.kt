@@ -1,6 +1,5 @@
 package com.example.pokedex_android.pokemondetail
 
-import PokemonData
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -24,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,12 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,7 +52,6 @@ import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.pokedex_android.R
-import com.example.pokedex_android.data.local.responses.Evolution
 import com.example.pokedex_android.data.remote.responses.Pokemon
 import com.example.pokedex_android.util.Resource
 import com.plcoding.jetpackcomposepokedex.util.parseStatToAbbr
@@ -236,7 +231,6 @@ fun PokemonDetailSection(
             .fillMaxSize()
             .offset(y = 100.dp)
             .verticalScroll(scrollState)
-            .padding()
             .padding(bottom = 90.dp)
     ) {
         Row {
@@ -350,7 +344,6 @@ fun PokemonDescriptionSection(
 ) {
     Box(
         modifier = modifier
-            .padding()
             .padding(vertical = 10.dp)
     ) {
         Column {
@@ -363,7 +356,6 @@ fun PokemonDescriptionSection(
                     fontSize = 25.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = modifier
-                        .padding()
                         .padding(vertical = 10.dp)
                 )
             }
@@ -372,7 +364,6 @@ fun PokemonDescriptionSection(
                 fontSize = 20.sp,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = modifier
-                    .padding()
                     .padding(vertical = 10.dp)
             )
         }
@@ -388,57 +379,73 @@ fun PokemonEvolutionSection(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .padding(bottom = 10.dp)
     ) {
-        if (viewModel.prevEvolution.value.id != 0) {
-            Text(text = "Previous Evolution")
-            PokemonEvolutionItem(evolution = viewModel.prevEvolution.value)
-        }
-        if (viewModel.nextEvolution.size > 0) {
-            for (item in viewModel.nextEvolution) {
-                Text(text = "Next Evolution")
-                PokemonEvolutionItem(evolution = item)
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (viewModel.prevEvolution.value.id != 0) {
+                Text(
+                    text = "Previous Evolution",
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .padding(bottom = 5.dp)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    SubcomposeAsyncImage(
+                        model = (viewModel.prevEvolution.value.image),
+                        contentDescription = viewModel.prevEvolution.value.name,
+                        success = {
+                            SubcomposeAsyncImageContent()
+                        },
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(10.dp)
+                    )
+                    Text(
+                        text = viewModel.prevEvolution.value.name,
+                        fontSize = 20.sp,
+                        modifier = Modifier
+                            .padding(start = 5.dp)
+                    )
+                }
+            }
+            if (viewModel.nextEvolution.size > 0) {
+                Text(
+                    text = if (viewModel.nextEvolution.size > 1) "Next Evolution Possibilities" else "Next Evolution",
+                    fontSize = 20.sp,
+                    modifier = Modifier
+                        .padding(bottom = 5.dp)
+                )
+                for (item in viewModel.nextEvolution) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        SubcomposeAsyncImage(
+                            model = (item.image),
+                            contentDescription = item.name,
+                            success = {
+                                SubcomposeAsyncImageContent()
+                            },
+                            modifier = Modifier
+                                .size(100.dp)
+                        )
+                        Text(
+                            text = item.name,
+                            fontSize = 20.sp,
+                            modifier = Modifier
+                                .padding(start = 5.dp)
+                        )
+                    }
+                }
             }
         }
-    }
-}
-
-@Composable
-fun PokemonEvolutionItem(
-    evolution: PokemonDetailViewModel.PokemonEvolutionData,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-    ) {
-        SubcomposeAsyncImage(
-            model = (evolution.image),
-            contentDescription = evolution.name,
-            success = {
-                SubcomposeAsyncImageContent()
-            },
-            modifier = Modifier
-                .size(50.dp)
-//                .weight(1f)
-        )
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-            tint = Color.Black,
-            contentDescription = null,
-            modifier = Modifier
-                .size(36.dp)
-//                .weight(1f)
-        )
-        SubcomposeAsyncImage(
-            model = (evolution.image),
-            contentDescription = evolution.name,
-            success = {
-                SubcomposeAsyncImageContent()
-            },
-            modifier = Modifier
-                .size(50.dp)
-//                .weight(1f)
-        )
     }
 }
 

@@ -392,12 +392,13 @@ fun PokemonEvolutionSection(
             if (viewModel.prevEvolution.value.id != 0) {
                 Text(
                     text = "Previous Evolution",
-                    fontSize = 20.sp,
+                    fontSize = 30.sp,
                     modifier = Modifier
                         .padding(bottom = 5.dp)
                 )
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
@@ -410,6 +411,7 @@ fun PokemonEvolutionSection(
                         modifier = Modifier
                             .size(100.dp)
                             .padding(10.dp)
+                            .weight(2f)
                             .clickable {
                                 navController.navigate(
                                     "pokemon_detail_screen/${viewModel.prevEvolution.value.name}/${viewModel.prevEvolution.value.id}/${false}"
@@ -421,13 +423,14 @@ fun PokemonEvolutionSection(
                         fontSize = 20.sp,
                         modifier = Modifier
                             .padding(start = 5.dp)
+                            .weight(2f)
                     )
                 }
             }
             if (viewModel.nextEvolution.size > 0) {
                 Text(
-                    text = if (viewModel.nextEvolution.size > 1) "Next Evolution Possibilities" else "Next Evolution",
-                    fontSize = 20.sp,
+                    text = if (viewModel.nextEvolution.size > 1) "Possible Evolutions" else "Next Evolution",
+                    fontSize = 30.sp,
                     modifier = Modifier
                         .padding(bottom = 5.dp)
                 )
@@ -436,38 +439,49 @@ fun PokemonEvolutionSection(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(top = 20.dp)
                     ) {
-                        SubcomposeAsyncImage(
-                            model = (item.image),
-                            contentDescription = item.name,
-                            success = {
-                                SubcomposeAsyncImageContent()
-                            },
+                        Spacer(modifier = Modifier.weight(1f))
+                        Column(
                             modifier = Modifier
-                                .size(100.dp)
-                                .clickable {
-                                    navController.navigate(
-                                        "pokemon_detail_screen/${item.name}/${item.id}/${false}"
-                                    )
-                                }
-                        )
-                        Text(
-                            text = item.name,
-                            fontSize = 20.sp,
+                                .weight(2f)
+                        ) {
+                            Text(
+                                text = item.name,
+                                fontSize = 20.sp,
+                                modifier = Modifier
+                                    .padding(bottom = 5.dp)
+                            )
+                            SubcomposeAsyncImage(
+                                model = (item.image),
+                                contentDescription = item.name,
+                                success = {
+                                    SubcomposeAsyncImageContent()
+                                },
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clickable {
+                                        navController.navigate(
+                                            "pokemon_detail_screen/${item.name}/${item.id}/${false}"
+                                        )
+                                    }
+                            )
+                        }
+                        Column(
                             modifier = Modifier
                                 .padding(start = 5.dp)
-                        )
-                        Column(
-                            modifier = Modifier.weight(2f),
+                                .weight(3f),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Evolution Reqs:"
+                                text = "Evolution Reqs:",
+                                fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = item.requirement
                             )
                         }
+                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }

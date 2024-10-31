@@ -71,6 +71,7 @@ fun PokemonListScreen(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    var query by remember { mutableStateOf(viewModel.searchQuery) }
 
     Surface(
         color = MaterialTheme.colorScheme.background,
@@ -86,10 +87,12 @@ fun PokemonListScreen(
             )
             SearchBar(
                 hint = "Search...",
+                queryString = query.value,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
+                query.value = it
                 viewModel.searchPokemonList(it)
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -110,20 +113,21 @@ fun PokemonListScreen(
 fun SearchBar(
     modifier: Modifier = Modifier,
     hint: String = "",
+    queryString: String,
     onSearch: (String) -> Unit = {}
 ) {
-    var text by remember {
-        mutableStateOf("")
-    }
+//    var text by remember {
+//        mutableStateOf("")
+//    }
     var isHintDisplayed by remember {
         mutableStateOf(hint != "")
     }
 
     Box(modifier = modifier) {
         BasicTextField(
-            value = text,
+            value = queryString,
             onValueChange = {
-                text = it
+//                queryString = it
                 onSearch(it)
             },
             maxLines = 1,
@@ -135,7 +139,7 @@ fun SearchBar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 20.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    isHintDisplayed = !it.isFocused && text.isEmpty()
+                    isHintDisplayed = !it.isFocused && queryString.isEmpty()
                 }
         )
         if (isHintDisplayed) {

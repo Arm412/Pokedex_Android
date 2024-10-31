@@ -186,6 +186,7 @@ fun PokemonListFilterRow(
             modifier = Modifier
                 .weight(1f)
         ) {
+            Text(text = "Item Size:")
             PokemonListDropDownMenu {
                 coroutineScope.launch {
                     // Animate scroll to the 1st item

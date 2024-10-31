@@ -41,7 +41,7 @@ fun PokemonListDropDownMenu(
             expanded = !expanded
         }
         .background(color = Color.White)
-        .padding(start = 16.dp, top = 4.dp, end = 0.dp, bottom = 4.dp)
+        .padding(start = 16.dp, top = 1.dp, end = 0.dp, bottom = 1.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(

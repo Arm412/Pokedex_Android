@@ -21,8 +21,11 @@ import javax.inject.Inject
 class PokemonDetailViewModel @Inject constructor(
     private val repository: PokemonRepository
 ): ViewModel() {
+    var id = mutableStateOf(0)
     var dominantColor = mutableStateOf(Color.White)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
+    var nextEvolution = mutableListOf<PokemonEvolutionData>()
+    var prevEvolution = mutableStateOf(PokemonEvolutionData(0, "", ""))
     var showShiny = mutableStateOf(false)
 
     data class PokemonEvolutionData(
@@ -33,6 +36,17 @@ class PokemonDetailViewModel @Inject constructor(
 
     init {
         fetchLocalPokemonData()
+    }
+
+    fun setEvolutionObjects() {
+        val currentPokemonData = localPokemonData.value.get(id.value - 1)
+        currentPokemonData.evolution.prev?.let {
+            prevEvolution.value = createPrevEvolutionObject(currentPokemonData.evolution.prev)
+        }
+
+        if (currentPokemonData.evolution.next?.isNotEmpty() == true) {
+            nextEvolution = createNextEvolutionObject(currentPokemonData.evolution.next)
+        }
     }
 
     suspend fun getPokemonInfo(pokemonName: String): Resource<Pokemon> {
@@ -57,5 +71,30 @@ class PokemonDetailViewModel @Inject constructor(
 
     fun toggleShiny() {
         showShiny.value = !showShiny.value
+    }
+
+    fun createNextEvolutionObject(next: List<List<String>>): MutableList<PokemonEvolutionData> {
+        val nextEvolutions = mutableListOf<PokemonEvolutionData>()
+
+        for (item in next) {
+            val pokemonData = localPokemonData.value[item[0].toInt() - 1]
+            nextEvolutions.add(
+                PokemonEvolutionData(
+                    id = pokemonData.id,
+                    name = pokemonData.name.english,
+                    image = pokemonData.image.hires
+                )
+            )
+        }
+        return nextEvolutions
+    }
+
+    fun createPrevEvolutionObject(prev: List<String>): PokemonEvolutionData {
+        val pokemonData = localPokemonData.value[prev[0].toInt() - 1]
+        return PokemonEvolutionData(
+            id = pokemonData.id,
+            name = pokemonData.name.english,
+            image = pokemonData.image.hires
+        )
     }
 }

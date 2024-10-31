@@ -1,5 +1,6 @@
 package com.example.pokedex_android.pokemondetail
 
+import PokemonData
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -66,6 +67,7 @@ import kotlin.math.round
 
 @Composable
 fun PokemonDetailScreen(
+    id: Int,
     dominantColor: Color,
     pokemonName: String,
     showShiny: Boolean,
@@ -80,6 +82,11 @@ fun PokemonDetailScreen(
 
     LaunchedEffect(showShiny) {
         viewModel.showShiny.value = showShiny
+    }
+
+    LaunchedEffect(id) {
+        viewModel.id.value = id
+        viewModel.setEvolutionObjects()
     }
 
     LaunchedEffect(dominantColor) {
@@ -262,6 +269,7 @@ fun PokemonDetailSection(
             species = pokemonInfoLocal.species,
             description = pokemonInfoLocal.description
         )
+        PokemonEvolutionSection()
         PokemonBaseStats(pokemonInfo = pokemonInfo)
     }
 }
@@ -373,70 +381,64 @@ fun PokemonDescriptionSection(
 
 @Composable
 fun PokemonEvolutionSection(
-    evolutionInfo: Evolution,
+    viewModel: PokemonDetailViewModel = hiltViewModel(),
     modifier: Modifier = Modifier
 ) {
-    if (evolutionInfo.prev.size > 0) {
-    // Previous evolution row
-    }
-    if (evolutionInfo.next.size > 0) {
-    // Next evolution row
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+    ) {
+        if (viewModel.prevEvolution.value.id != 0) {
+            Text(text = "Previous Evolution")
+            PokemonEvolutionItem(evolution = viewModel.prevEvolution.value)
+        }
+        if (viewModel.nextEvolution.size > 0) {
+            for (item in viewModel.nextEvolution) {
+                Text(text = "Next Evolution")
+                PokemonEvolutionItem(evolution = item)
+            }
+        }
     }
 }
 
 @Composable
 fun PokemonEvolutionItem(
-    isNext: Boolean,
-    evolutionData: List<PokemonDetailViewModel.PokemonEvolutionData>,
+    evolution: PokemonDetailViewModel.PokemonEvolutionData,
     modifier: Modifier = Modifier
 ) {
-    Box(
+    Row(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
     ) {
-        Column(
+        SubcomposeAsyncImage(
+            model = (evolution.image),
+            contentDescription = evolution.name,
+            success = {
+                SubcomposeAsyncImageContent()
+            },
             modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = if (isNext) "Next Evolution" else "Previous Evolution"
-            )
-            for (data in evolutionData) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
-                    SubcomposeAsyncImage(
-                        model = (evolutionData[0].image),
-                        contentDescription = evolutionData[0].name,
-                        success = {
-                            SubcomposeAsyncImageContent()
-                        },
-                        modifier = Modifier
-                            .size(50.dp)
-                            .weight(1f)
-                    )
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                        tint = Color.White,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .weight(1f)
-                    )
-                    SubcomposeAsyncImage(
-                        model = (evolutionData[0].image),
-                        contentDescription = evolutionData[0].name,
-                        success = {
-                            SubcomposeAsyncImageContent()
-                        },
-                        modifier = Modifier
-                            .size(50.dp)
-                            .weight(1f)
-                    )
-                }
-            }
-        }
+                .size(50.dp)
+//                .weight(1f)
+        )
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+            tint = Color.Black,
+            contentDescription = null,
+            modifier = Modifier
+                .size(36.dp)
+//                .weight(1f)
+        )
+        SubcomposeAsyncImage(
+            model = (evolution.image),
+            contentDescription = evolution.name,
+            success = {
+                SubcomposeAsyncImageContent()
+            },
+            modifier = Modifier
+                .size(50.dp)
+//                .weight(1f)
+        )
     }
 }
 

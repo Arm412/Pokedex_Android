@@ -272,7 +272,7 @@ fun PokedexEntrySmall(
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${entry.number}/${showShiny}"
+                    "pokemon_detail_screen/${entry.pokemonName}/${entry.number}/${showShiny}"
                 )
             }
     ) {
@@ -332,7 +332,7 @@ fun PokedexEntryMedium(
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${entry.number}/${showShiny}"
+                    "pokemon_detail_screen/${entry.pokemonName}/${entry.number}/${showShiny}"
                 )
             }
     ) {
@@ -399,7 +399,7 @@ fun PokedexEntryLarge(
             )
             .clickable {
                 navController.navigate(
-                    "pokemon_detail_screen/${dominantColor.toArgb()}/${entry.pokemonName}/${entry.number}/${showShiny}"
+                    "pokemon_detail_screen/${entry.pokemonName}/${entry.number}/${showShiny}"
                 )
             }
     ) {

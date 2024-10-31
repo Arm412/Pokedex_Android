@@ -102,6 +102,7 @@ fun PokemonDetailScreen(
         )
         PokemonDetailStateWrapper(
             pokemonInfo = pokemonInfo,
+            navController = navController,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
@@ -184,6 +185,7 @@ fun PokemonDetailTopSection(
 @Composable
 fun PokemonDetailStateWrapper(
     pokemonInfo: Resource<Pokemon>,
+    navController: NavController,
     modifier: Modifier = Modifier,
     loadingModifier: Modifier = Modifier
 ) {
@@ -191,6 +193,7 @@ fun PokemonDetailStateWrapper(
         is Resource.Success -> {
             PokemonDetailSection(
                 pokemonInfo = pokemonInfo.data!!,
+                navController = navController,
                 modifier = modifier
                     .offset(y = (-20).dp)
             )
@@ -214,6 +217,7 @@ fun PokemonDetailStateWrapper(
 @Composable
 fun PokemonDetailSection(
     pokemonInfo: Pokemon,
+    navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
@@ -263,7 +267,7 @@ fun PokemonDetailSection(
             species = pokemonInfoLocal.species,
             description = pokemonInfoLocal.description
         )
-        PokemonEvolutionSection()
+        PokemonEvolutionSection(navController = navController)
         PokemonBaseStats(pokemonInfo = pokemonInfo)
     }
 }
@@ -373,6 +377,7 @@ fun PokemonDescriptionSection(
 @Composable
 fun PokemonEvolutionSection(
     viewModel: PokemonDetailViewModel = hiltViewModel(),
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
 
@@ -405,6 +410,11 @@ fun PokemonEvolutionSection(
                         modifier = Modifier
                             .size(100.dp)
                             .padding(10.dp)
+                            .clickable {
+                                navController.navigate(
+                                    "pokemon_detail_screen/${viewModel.prevEvolution.value.name}/${viewModel.prevEvolution.value.id}/${false}"
+                                )
+                            }
                     )
                     Text(
                         text = viewModel.prevEvolution.value.name,
@@ -435,6 +445,11 @@ fun PokemonEvolutionSection(
                             },
                             modifier = Modifier
                                 .size(100.dp)
+                                .clickable {
+                                    navController.navigate(
+                                        "pokemon_detail_screen/${item.name}/${item.id}/${false}"
+                                    )
+                                }
                         )
                         Text(
                             text = item.name,
@@ -442,6 +457,17 @@ fun PokemonEvolutionSection(
                             modifier = Modifier
                                 .padding(start = 5.dp)
                         )
+                        Column(
+                            modifier = Modifier.weight(2f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Evolution Reqs:"
+                            )
+                            Text(
+                                text = item.requirement
+                            )
+                        }
                     }
                 }
             }

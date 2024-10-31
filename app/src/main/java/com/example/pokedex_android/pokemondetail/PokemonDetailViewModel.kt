@@ -25,13 +25,14 @@ class PokemonDetailViewModel @Inject constructor(
     var dominantColor = mutableStateOf(Color.White)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
     var nextEvolution = mutableListOf<PokemonEvolutionData>()
-    var prevEvolution = mutableStateOf(PokemonEvolutionData(0, "", ""))
+    var prevEvolution = mutableStateOf(PokemonEvolutionData())
     var showShiny = mutableStateOf(false)
 
     data class PokemonEvolutionData(
-        val id: Int,
-        val name: String,
-        val image: String,
+        val id: Int = 0,
+        val name: String = "",
+        val image: String = "",
+        val requirement: String = ""
     )
 
     init {
@@ -82,7 +83,8 @@ class PokemonDetailViewModel @Inject constructor(
                 PokemonEvolutionData(
                     id = pokemonData.id,
                     name = pokemonData.name.english,
-                    image = pokemonData.image.hires
+                    image = pokemonData.image.hires,
+                    requirement = item[1]
                 )
             )
         }

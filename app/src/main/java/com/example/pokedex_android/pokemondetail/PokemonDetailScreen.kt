@@ -37,12 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -64,6 +62,7 @@ import kotlin.math.round
 
 @Composable
 fun PokemonDetailScreen(
+    id: Int,
     dominantColor: Color,
     pokemonName: String,
     showShiny: Boolean,
@@ -78,6 +77,11 @@ fun PokemonDetailScreen(
 
     LaunchedEffect(showShiny) {
         viewModel.showShiny.value = showShiny
+    }
+
+    LaunchedEffect(id) {
+        viewModel.id.value = id
+        viewModel.setEvolutionObjects()
     }
 
     LaunchedEffect(dominantColor) {
@@ -98,6 +102,7 @@ fun PokemonDetailScreen(
         )
         PokemonDetailStateWrapper(
             pokemonInfo = pokemonInfo,
+            navController = navController,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
@@ -180,6 +185,7 @@ fun PokemonDetailTopSection(
 @Composable
 fun PokemonDetailStateWrapper(
     pokemonInfo: Resource<Pokemon>,
+    navController: NavController,
     modifier: Modifier = Modifier,
     loadingModifier: Modifier = Modifier
 ) {
@@ -187,6 +193,7 @@ fun PokemonDetailStateWrapper(
         is Resource.Success -> {
             PokemonDetailSection(
                 pokemonInfo = pokemonInfo.data!!,
+                navController = navController,
                 modifier = modifier
                     .offset(y = (-20).dp)
             )
@@ -210,6 +217,7 @@ fun PokemonDetailStateWrapper(
 @Composable
 fun PokemonDetailSection(
     pokemonInfo: Pokemon,
+    navController: NavController,
     modifier: Modifier = Modifier,
     viewModel: PokemonDetailViewModel = hiltViewModel()
 ) {
@@ -227,7 +235,6 @@ fun PokemonDetailSection(
             .fillMaxSize()
             .offset(y = 100.dp)
             .verticalScroll(scrollState)
-            .padding()
             .padding(bottom = 90.dp)
     ) {
         Row {
@@ -256,10 +263,11 @@ fun PokemonDetailSection(
             pokemonWeight = pokemonInfo.weight,
             pokemonHeight = pokemonInfo.height
         )
-        PokemonDescriptionItem(
+        PokemonDescriptionSection(
             species = pokemonInfoLocal.species,
             description = pokemonInfoLocal.description
         )
+        PokemonEvolutionSection(navController = navController)
         PokemonBaseStats(pokemonInfo = pokemonInfo)
     }
 }
@@ -333,14 +341,13 @@ fun PokemonDetailDataSection(
 }
 
 @Composable
-fun PokemonDescriptionItem(
+fun PokemonDescriptionSection(
     description: String,
     species: String,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
-            .padding()
             .padding(vertical = 10.dp)
     ) {
         Column {
@@ -353,7 +360,6 @@ fun PokemonDescriptionItem(
                     fontSize = 25.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = modifier
-                        .padding()
                         .padding(vertical = 10.dp)
                 )
             }
@@ -362,9 +368,123 @@ fun PokemonDescriptionItem(
                 fontSize = 20.sp,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = modifier
-                    .padding()
                     .padding(vertical = 10.dp)
             )
+        }
+    }
+}
+
+@Composable
+fun PokemonEvolutionSection(
+    viewModel: PokemonDetailViewModel = hiltViewModel(),
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(bottom = 10.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (viewModel.prevEvolution.value.id != 0) {
+                Text(
+                    text = "Previous Evolution",
+                    fontSize = 30.sp,
+                    modifier = Modifier
+                        .padding(bottom = 5.dp)
+                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    SubcomposeAsyncImage(
+                        model = (viewModel.prevEvolution.value.image),
+                        contentDescription = viewModel.prevEvolution.value.name,
+                        success = {
+                            SubcomposeAsyncImageContent()
+                        },
+                        modifier = Modifier
+                            .size(100.dp)
+                            .padding(10.dp)
+                            .weight(2f)
+                            .clickable {
+                                navController.navigate(
+                                    "pokemon_detail_screen/${viewModel.prevEvolution.value.name}/${viewModel.prevEvolution.value.id}/${false}"
+                                )
+                            }
+                    )
+                    Text(
+                        text = viewModel.prevEvolution.value.name,
+                        fontSize = 20.sp,
+                        modifier = Modifier
+                            .padding(start = 5.dp)
+                            .weight(2f)
+                    )
+                }
+            }
+            if (viewModel.nextEvolution.size > 0) {
+                Text(
+                    text = if (viewModel.nextEvolution.size > 1) "Possible Evolutions" else "Next Evolution",
+                    fontSize = 30.sp,
+                    modifier = Modifier
+                        .padding(bottom = 5.dp)
+                )
+                for (item in viewModel.nextEvolution) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 20.dp)
+                    ) {
+                        Spacer(modifier = Modifier.weight(1f))
+                        Column(
+                            modifier = Modifier
+                                .weight(2f)
+                        ) {
+                            Text(
+                                text = item.name,
+                                fontSize = 20.sp,
+                                modifier = Modifier
+                                    .padding(bottom = 5.dp)
+                            )
+                            SubcomposeAsyncImage(
+                                model = (item.image),
+                                contentDescription = item.name,
+                                success = {
+                                    SubcomposeAsyncImageContent()
+                                },
+                                modifier = Modifier
+                                    .size(100.dp)
+                                    .clickable {
+                                        navController.navigate(
+                                            "pokemon_detail_screen/${item.name}/${item.id}/${false}"
+                                        )
+                                    }
+                            )
+                        }
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 5.dp)
+                                .weight(3f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Evolution Reqs:",
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = item.requirement
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
         }
     }
 }

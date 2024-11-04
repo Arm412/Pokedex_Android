@@ -35,6 +35,7 @@ class PokemonListViewModel @Inject constructor(
     var rowItemSize = mutableStateOf(RowItemSize.MEDIUM)
     var page_size = mutableIntStateOf(20)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
+    var searchQuery = mutableStateOf("")
 
     private var cachedPokemonList = listOf<PokedexListEntry>()
     private var isSearchStarting = true
@@ -46,6 +47,7 @@ class PokemonListViewModel @Inject constructor(
     }
 
     fun searchPokemonList(query: String) {
+        searchQuery.value = query
         val listToSearch = if(isSearchStarting) {
             pokemonList.value
         } else {

@@ -38,13 +38,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(
-                        "pokemon_detail_screen/{dominantColor}/{pokemonName}/{showShiny}",
+                        "pokemon_detail_screen/{pokemonName}/{id}/{showShiny}",
                         arguments = listOf(
-                            navArgument("dominantColor") {
-                                type = NavType.IntType
-                            },
                             navArgument("pokemonName") {
                                 type = NavType.StringType
+                            },
+                            navArgument("id") {
+                                type = NavType.IntType
                             },
                             navArgument("showShiny") {
                                 type = NavType.BoolType
@@ -60,10 +60,15 @@ class MainActivity : ComponentActivity() {
                             it.arguments?.getString("pokemonName")
                         }
 
+                        val id = remember {
+                            it.arguments?.getInt("id") ?: 0
+                        }
+
                         val showShiny = remember {
                             it.arguments?.getBoolean("showShiny")
                         }
                         PokemonDetailScreen(
+                            id = id,
                             dominantColor = dominantColor,
                             pokemonName = pokemonName?.lowercase(Locale.ROOT) ?: "",
                             showShiny = showShiny ?: false,

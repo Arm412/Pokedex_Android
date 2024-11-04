@@ -4,6 +4,7 @@ import PokemonData
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -21,7 +22,7 @@ import javax.inject.Inject
 class PokemonDetailViewModel @Inject constructor(
     private val repository: PokemonRepository
 ): ViewModel() {
-    var id = mutableStateOf(0)
+    var id = mutableIntStateOf(0)
     var dominantColor = mutableStateOf(Color.White)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
     var nextEvolution = mutableListOf<PokemonEvolutionData>()
@@ -74,7 +75,7 @@ class PokemonDetailViewModel @Inject constructor(
         showShiny.value = !showShiny.value
     }
 
-    fun createNextEvolutionObject(next: List<List<String>>): MutableList<PokemonEvolutionData> {
+    private fun createNextEvolutionObject(next: List<List<String>>): MutableList<PokemonEvolutionData> {
         val nextEvolutions = mutableListOf<PokemonEvolutionData>()
 
         for (item in next) {
@@ -84,14 +85,14 @@ class PokemonDetailViewModel @Inject constructor(
                     id = pokemonData.id,
                     name = pokemonData.name.english,
                     image = pokemonData.image.hires,
-                    requirement = item[1]
+                    requirement = item[1].replaceFirstChar(Char::titlecase)
                 )
             )
         }
         return nextEvolutions
     }
 
-    fun createPrevEvolutionObject(prev: List<String>): PokemonEvolutionData {
+    private fun createPrevEvolutionObject(prev: List<String>): PokemonEvolutionData {
         val pokemonData = localPokemonData.value[prev[0].toInt() - 1]
         return PokemonEvolutionData(
             id = pokemonData.id,

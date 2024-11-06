@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -72,6 +74,7 @@ fun PokemonListScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     var query by remember { mutableStateOf(viewModel.searchQuery) }
+    var showFilters by remember { mutableStateOf(false) }
 
     Surface(
         color = MaterialTheme.colorScheme.background,
@@ -85,22 +88,40 @@ fun PokemonListScreen(
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
             )
-            SearchBar(
-                hint = "Search...",
-                queryString = query.value,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
             ) {
-                query.value = it
-                viewModel.searchPokemonList(it)
+                SearchBar(
+                    hint = "Search...",
+                    queryString = query.value,
+                    modifier = Modifier
+                        .weight(87f)
+                        .padding(start = 16.dp, top = 16.dp, end = 8.dp, bottom = 16.dp)
+                ) {
+                    query.value = it
+                    viewModel.searchPokemonList(it)
+                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_filter),
+                    contentDescription = "Toggle Filters",
+                    modifier = Modifier
+                        .weight(13f)
+                        .padding(top = 16.dp, end = 16.dp)
+                        .clickable {
+                            showFilters = !showFilters
+                        }
+
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
-            PokemonListFilterRow(
-                listState = listState,
-                coroutineScope = coroutineScope
-            )
-            Spacer(modifier = Modifier.height(16.dp))
+            if (showFilters) {
+                PokemonListFilterRow(
+                    listState = listState,
+                    coroutineScope = coroutineScope
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             PokemonList(
                 navController = navController,
                 listState = listState
@@ -116,9 +137,6 @@ fun SearchBar(
     queryString: String,
     onSearch: (String) -> Unit = {}
 ) {
-//    var text by remember {
-//        mutableStateOf("")
-//    }
     var isHintDisplayed by remember {
         mutableStateOf(hint != "")
     }
@@ -127,7 +145,6 @@ fun SearchBar(
         BasicTextField(
             value = queryString,
             onValueChange = {
-//                queryString = it
                 onSearch(it)
             },
             maxLines = 1,

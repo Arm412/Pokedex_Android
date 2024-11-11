@@ -73,7 +73,7 @@ fun PokemonListScreen(
 ) {
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    var query by remember { mutableStateOf(viewModel.searchQuery) }
+    val query by remember { mutableStateOf(viewModel.searchQuery) }
     var showFilters by remember { mutableStateOf(false) }
 
     Surface(
@@ -97,7 +97,7 @@ fun PokemonListScreen(
                     queryString = query.value,
                     modifier = Modifier
                         .weight(87f)
-                        .padding(start = 16.dp, top = 16.dp, end = 8.dp, bottom = 16.dp)
+                        .padding(start = 16.dp, top = 16.dp, end = 8.dp, bottom = 8.dp)
                 ) {
                     query.value = it
                     viewModel.searchPokemonList(it)
@@ -114,13 +114,11 @@ fun PokemonListScreen(
 
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
             if (showFilters) {
                 PokemonListFilterRow(
                     listState = listState,
                     coroutineScope = coroutineScope
                 )
-                Spacer(modifier = Modifier.height(8.dp))
             }
             PokemonList(
                 navController = navController,

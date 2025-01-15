@@ -14,6 +14,17 @@ data class PokemonData(
 )
 
 @Serializable
+data class PokemonEffectiveness(
+    val types: Map<String, PokemonTypeEffectiveness>
+)
+
+@Serializable
+data class PokemonTypeEffectiveness(
+    val offensive: Map<String, Double>,
+    val defensive: Map<String, Double>
+)
+
+@Serializable
 data class Name(
     val english: String,
     val japanese: String,

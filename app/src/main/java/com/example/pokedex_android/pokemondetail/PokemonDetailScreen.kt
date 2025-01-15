@@ -605,3 +605,11 @@ fun PokemonBaseStats(
         }
     }
 }
+
+//@Composable
+//fun PokemonEffectiveness(
+//    types: List<String>,
+//    typeEffectiveness: Map<String, Float>
+//) {
+//
+//}

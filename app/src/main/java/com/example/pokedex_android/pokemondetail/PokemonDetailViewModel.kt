@@ -1,6 +1,7 @@
 package com.example.pokedex_android.pokemondetail
 
 import PokemonData
+import PokemonEffectiveness
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -25,6 +26,7 @@ class PokemonDetailViewModel @Inject constructor(
     var id = mutableIntStateOf(0)
     var dominantColor = mutableStateOf(Color.White)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
+    var pokemonEffectivenessData = mutableStateOf<PokemonEffectiveness?>(null)
     var nextEvolution = mutableListOf<PokemonEvolutionData>()
     var prevEvolution = mutableStateOf(PokemonEvolutionData())
     var showShiny = mutableStateOf(false)
@@ -68,6 +70,7 @@ class PokemonDetailViewModel @Inject constructor(
     private fun fetchLocalPokemonData() {
         viewModelScope.launch {
             localPokemonData.value = repository.loadPokemonJson()
+            pokemonEffectivenessData.value = repository.loadPokemonEffectiveness()
         }
     }
 

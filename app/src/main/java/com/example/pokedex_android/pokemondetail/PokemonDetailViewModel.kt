@@ -2,6 +2,7 @@ package com.example.pokedex_android.pokemondetail
 
 import PokemonData
 import PokemonEffectiveness
+import PokemonTypeEffectiveness
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -26,7 +27,7 @@ class PokemonDetailViewModel @Inject constructor(
     var id = mutableIntStateOf(0)
     var dominantColor = mutableStateOf(Color.White)
     var localPokemonData = mutableStateOf<List<PokemonData>>(emptyList())
-    var pokemonEffectivenessData = mutableStateOf<PokemonEffectiveness?>(null)
+    var pokemonEffectivenessData = mutableStateOf(PokemonEffectiveness(emptyMap()))
     var nextEvolution = mutableListOf<PokemonEvolutionData>()
     var prevEvolution = mutableStateOf(PokemonEvolutionData())
     var showShiny = mutableStateOf(false)
@@ -65,6 +66,45 @@ class PokemonDetailViewModel @Inject constructor(
                 onFinish(Color(colorValue))
             }
         }
+    }
+
+    fun determineTypeEffectivenessGroups(types: List<String>): MutableMap<String, MutableMap<String, MutableList<String>>> {
+        val typeEffectivenessMap = mutableMapOf(
+            "offensive" to mutableMapOf<String, MutableList<String>>(),
+            "defensive" to mutableMapOf()
+        )
+
+        for(type in pokemonEffectivenessData.value.types.keys) {
+            var totalMultiplicativeOffense = 1.0
+            var totalMultiplicativeDefense = 1.0
+
+            for (currentPokemonType in types) {
+
+                var typeBattleInfo = pokemonEffectivenessData.value.types[currentPokemonType]
+                var typeOffensiveMultiplier: Number = typeBattleInfo?.offensive?.get(type) ?: 0
+                var typeDefensiveMultiplier: Number = typeBattleInfo?.defensive?.get(type) ?: 0
+
+                totalMultiplicativeOffense *= typeOffensiveMultiplier.toDouble()
+                totalMultiplicativeDefense *= typeDefensiveMultiplier.toDouble()
+            }
+            val offenseKey = totalMultiplicativeOffense.toString()
+
+            typeEffectivenessMap["offensive"]?.get(offenseKey)?.apply {
+                add(type)
+            } ?: run {
+                typeEffectivenessMap["offensive"]?.put(offenseKey, mutableListOf(type))
+            }
+
+            val defenseKey = totalMultiplicativeOffense.toString()
+
+            typeEffectivenessMap["defensive"]?.get(defenseKey)?.apply {
+                add(type)
+            } ?: run {
+                typeEffectivenessMap["defensive"]?.put(defenseKey, mutableListOf(type))
+            }
+
+        }
+        return typeEffectivenessMap
     }
 
     private fun fetchLocalPokemonData() {

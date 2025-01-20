@@ -4,6 +4,7 @@ import PokemonEffectiveness
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -625,7 +628,7 @@ fun PokemonEffectivenessSection(
     pokemonInfo: Pokemon,
     viewModel: PokemonDetailViewModel
 ) {
-    var showModal = remember { mutableStateOf(false) }
+    val showModal = remember { mutableStateOf(false) }
 
     Box {
         Column(modifier = Modifier) {
@@ -651,6 +654,8 @@ fun EffectivenessChart(
     types: List<String>,
     viewModel: PokemonDetailViewModel
 ) {
+    val typeEffectivenessMap = viewModel.determineTypeEffectivenessGroups(types)
+
     Dialog(onDismissRequest = onDismiss) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -689,27 +694,48 @@ fun EffectivenessChart(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = "Offense",
-                    fontFamily = RobotoCondensed,
-                    fontSize = 30.sp,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth()
+                Column {
+                    Text(
+                        text = "Offense",
+                        fontFamily = RobotoCondensed,
+                        fontSize = 30.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp)
+                    )
 
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.Black)
+                    )
+
+                    Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp, horizontal = 8.dp)
+                    ) {
+                        Text(
+                            text = "Does 2x:",
+                            fontFamily = RobotoCondensed,
+                            fontSize = 20.sp,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                        )
+
+                        Spacer(modifier = Modifier)
+                    }
+                }
+
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .background(Color.Black)
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Defense",
-                    fontFamily = RobotoCondensed,
-                    fontSize = 30.sp,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
             }
         }
     }

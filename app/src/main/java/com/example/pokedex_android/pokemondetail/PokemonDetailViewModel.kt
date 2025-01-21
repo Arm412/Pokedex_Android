@@ -75,7 +75,7 @@ class PokemonDetailViewModel @Inject constructor(
         )
 
         for(type in pokemonEffectivenessData.value.types.keys) {
-            var totalMultiplicativeOffense = 1.0
+            var totalMultiplicativeOffense = 0.0
             var totalMultiplicativeDefense = 1.0
 
             for (currentPokemonType in types) {
@@ -84,7 +84,10 @@ class PokemonDetailViewModel @Inject constructor(
                 var typeOffensiveMultiplier: Number = typeBattleInfo?.offensive?.get(type) ?: 0
                 var typeDefensiveMultiplier: Number = typeBattleInfo?.defensive?.get(type) ?: 0
 
-                totalMultiplicativeOffense *= typeOffensiveMultiplier.toDouble()
+                if (typeOffensiveMultiplier.toDouble() > totalMultiplicativeOffense) {
+                    totalMultiplicativeOffense = typeOffensiveMultiplier.toDouble()
+                }
+                
                 totalMultiplicativeDefense *= typeDefensiveMultiplier.toDouble()
             }
             val offenseKey = totalMultiplicativeOffense.toString()

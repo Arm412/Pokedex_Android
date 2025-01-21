@@ -95,7 +95,7 @@ class PokemonDetailViewModel @Inject constructor(
                 typeEffectivenessMap["offensive"]?.put(offenseKey, mutableListOf(type))
             }
 
-            val defenseKey = totalMultiplicativeOffense.toString()
+            val defenseKey = totalMultiplicativeDefense.toString()
 
             typeEffectivenessMap["defensive"]?.get(defenseKey)?.apply {
                 add(type)

@@ -10,6 +10,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -19,6 +21,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -647,6 +651,7 @@ fun PokemonEffectivenessSection(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EffectivenessChart(
     onDismiss: () -> Unit,
@@ -656,6 +661,8 @@ fun EffectivenessChart(
 ) {
     val typeEffectivenessMap = viewModel.determineTypeEffectivenessGroups(types)
 
+    val scrollState = rememberScrollState()
+
     Dialog(onDismissRequest = onDismiss) {
         Box(modifier = Modifier
             .fillMaxSize()
@@ -663,7 +670,10 @@ fun EffectivenessChart(
             .clip(RoundedCornerShape(10.dp))
             .background(Color.White)
         ) {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(modifier = Modifier
+                .padding(24.dp)
+                .verticalScroll(scrollState)
+            ) {
                 Row(horizontalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .fillMaxWidth()) {
@@ -695,6 +705,13 @@ fun EffectivenessChart(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Column {
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.Black)
+                    )
+
                     Text(
                         text = "Offense",
                         fontFamily = RobotoCondensed,
@@ -713,20 +730,49 @@ fun EffectivenessChart(
                             .background(Color.Black)
                     )
 
-                    Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp, horizontal = 8.dp)
-                    ) {
-                        Text(
-                            text = "Does 2x:",
-                            fontFamily = RobotoCondensed,
-                            fontSize = 20.sp,
-                            textAlign = TextAlign.Center,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier
-                        )
+                    typeEffectivenessMap["offensive"]?.entries
+                        ?.sortedByDescending { it.key }
+                        ?.forEach { (key, typeList) ->
+                        Row(verticalAlignment = Alignment.Top, modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth()
+                            .padding(vertical = 16.dp, horizontal = 8.dp)
+                        ) {
+                            Text(
+                                text = "Deals ${key}x:",
+                                fontFamily = RobotoCondensed,
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .width(75.dp)
+                            )
 
-                        Spacer(modifier = Modifier)
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                typeList.forEach { type ->
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(parseTypeToColor(type))
+                                            .height(35.dp)
+                                    ) {
+                                        Text(
+                                            text = type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() },
+                                            color = Color.White,
+                                            fontSize = 18.sp,
+                                            modifier = Modifier
+                                                .padding(horizontal = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -736,6 +782,71 @@ fun EffectivenessChart(
                         .height(3.dp)
                         .background(Color.Black)
                 )
+
+                Column {
+                    Text(
+                        text = "Defense",
+                        fontFamily = RobotoCondensed,
+                        fontSize = 30.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp)
+                    )
+
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.Black)
+                    )
+
+                    typeEffectivenessMap["defensive"]?.entries
+                        ?.sortedByDescending { it.key }
+                        ?.forEach { (key, typeList) ->
+                            Row(verticalAlignment = Alignment.Top, modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentWidth()
+                                .padding(vertical = 16.dp, horizontal = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Takes ${key}x:",
+                                    fontFamily = RobotoCondensed,
+                                    fontSize = 20.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .width(75.dp)
+                                )
+
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    typeList.forEach { type ->
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(parseTypeToColor(type))
+                                                .height(35.dp)
+                                        ) {
+                                            Text(
+                                                text = type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() },
+                                                color = Color.White,
+                                                fontSize = 18.sp,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                }
             }
         }
     }

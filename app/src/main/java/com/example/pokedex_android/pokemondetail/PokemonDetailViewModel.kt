@@ -2,7 +2,6 @@ package com.example.pokedex_android.pokemondetail
 
 import PokemonData
 import PokemonEffectiveness
-import PokemonTypeEffectiveness
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
@@ -12,7 +11,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
-import com.example.pokedex_android.data.local.responses.Evolution
 import com.example.pokedex_android.data.remote.responses.Pokemon
 import com.example.pokedex_android.repository.PokemonRepository
 import com.example.pokedex_android.util.Resource

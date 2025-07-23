@@ -1,5 +1,6 @@
 package com.example.pokedex_android.pokemondetail
 
+import PokemonEffectiveness
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -8,6 +9,8 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,12 +20,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,12 +53,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.pokedex_android.R
 import com.example.pokedex_android.data.remote.responses.Pokemon
+import com.example.pokedex_android.ui.theme.RobotoCondensed
 import com.example.pokedex_android.util.Resource
 import com.plcoding.jetpackcomposepokedex.util.parseStatToAbbr
 import com.plcoding.jetpackcomposepokedex.util.parseStatToColor
@@ -124,7 +132,8 @@ fun PokemonDetailScreen(
                     start = 16.dp,
                     end = 16.dp,
                     bottom = 16.dp
-                )
+                ),
+            viewModel = viewModel
         )
         Box(contentAlignment = Alignment.TopCenter,
             modifier = Modifier
@@ -187,7 +196,8 @@ fun PokemonDetailStateWrapper(
     pokemonInfo: Resource<Pokemon>,
     navController: NavController,
     modifier: Modifier = Modifier,
-    loadingModifier: Modifier = Modifier
+    loadingModifier: Modifier = Modifier,
+    viewModel: PokemonDetailViewModel
 ) {
     when(pokemonInfo) {
         is Resource.Success -> {
@@ -195,7 +205,8 @@ fun PokemonDetailStateWrapper(
                 pokemonInfo = pokemonInfo.data!!,
                 navController = navController,
                 modifier = modifier
-                    .offset(y = (-20).dp)
+                    .offset(y = (-20).dp),
+                viewModel = viewModel
             )
         }
         is Resource.Error -> {
@@ -219,7 +230,7 @@ fun PokemonDetailSection(
     pokemonInfo: Pokemon,
     navController: NavController,
     modifier: Modifier = Modifier,
-    viewModel: PokemonDetailViewModel = hiltViewModel()
+    viewModel: PokemonDetailViewModel
 ) {
     val pokemonInfoLocal = viewModel.localPokemonData.value[pokemonInfo.id - 1]
 
@@ -259,6 +270,11 @@ fun PokemonDetailSection(
             )
         }
         PokemonTypeSection(types = viewModel.localPokemonData.value[pokemonInfo.id - 1].type)
+        PokemonEffectivenessSection(
+            currentPokemonTypes = viewModel.localPokemonData.value[pokemonInfo.id - 1].type,
+            typeEffectiveness = viewModel.pokemonEffectivenessData.value,
+            pokemonInfo = pokemonInfo,
+            viewModel = viewModel)
         PokemonDetailDataSection(
             pokemonWeight = pokemonInfo.weight,
             pokemonHeight = pokemonInfo.height
@@ -267,7 +283,7 @@ fun PokemonDetailSection(
             species = pokemonInfoLocal.species,
             description = pokemonInfoLocal.description
         )
-        PokemonEvolutionSection(navController = navController)
+        PokemonEvolutionSection(viewModel = viewModel, navController = navController)
         PokemonBaseStats(pokemonInfo = pokemonInfo)
     }
 }
@@ -376,7 +392,7 @@ fun PokemonDescriptionSection(
 
 @Composable
 fun PokemonEvolutionSection(
-    viewModel: PokemonDetailViewModel = hiltViewModel(),
+    viewModel: PokemonDetailViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
@@ -602,6 +618,233 @@ fun PokemonBaseStats(
                 animDelay = i * animDelayPerItem
             )
             Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+fun PokemonEffectivenessSection(
+    currentPokemonTypes: List<String>,
+    typeEffectiveness: PokemonEffectiveness?,
+    pokemonInfo: Pokemon,
+    viewModel: PokemonDetailViewModel
+) {
+    val showModal = remember { mutableStateOf(false) }
+
+    Box {
+        Column(modifier = Modifier) {
+            Button(
+            onClick = { showModal.value = !showModal.value }
+            ) {
+                Text(text = "Show Effectiveness Chart")
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (showModal.value) {
+                EffectivenessChart(onDismiss = { showModal.value = false }, pokemonInfo = pokemonInfo, types = currentPokemonTypes, viewModel = viewModel)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun EffectivenessChart(
+    onDismiss: () -> Unit,
+    pokemonInfo: Pokemon,
+    types: List<String>,
+    viewModel: PokemonDetailViewModel
+) {
+    val typeEffectivenessMap = viewModel.determineTypeEffectivenessGroups(types)
+
+    val scrollState = rememberScrollState()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .shadow(10.dp, RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(10.dp))
+            .background(Color.White)
+        ) {
+            Column(modifier = Modifier
+                .padding(24.dp)
+                .verticalScroll(scrollState)
+            ) {
+                Row(horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()) {
+                    SubcomposeAsyncImage(
+                        model = pokemonInfo.sprites.front_default,
+                        contentDescription = pokemonInfo.name,
+                        success = { success ->
+                            viewModel.calcDominantColor(success.result.drawable) {
+                                viewModel.dominantColor.value = it
+                            }
+                            SubcomposeAsyncImageContent()
+                        },
+                        modifier = Modifier
+                            .size(100.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "${pokemonInfo.name.replaceFirstChar { it.uppercase() }} Type(s) ",
+                    fontFamily = RobotoCondensed,
+                    fontSize = 20.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth())
+
+                PokemonTypeSection(types = types)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Column {
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.Black)
+                    )
+
+                    Text(
+                        text = "Offense",
+                        fontFamily = RobotoCondensed,
+                        fontSize = 30.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp)
+                    )
+
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.Black)
+                    )
+
+                    typeEffectivenessMap["offensive"]?.entries
+                        ?.sortedByDescending { it.key }
+                        ?.forEach { (key, typeList) ->
+                        Row(verticalAlignment = Alignment.Top, modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentWidth()
+                            .padding(vertical = 16.dp, horizontal = 8.dp)
+                        ) {
+                            Text(
+                                text = "Deals ${key}x:",
+                                fontFamily = RobotoCondensed,
+                                fontSize = 20.sp,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .width(75.dp)
+                            )
+
+                            FlowRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                typeList.forEach { type ->
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier
+                                            .clip(CircleShape)
+                                            .background(parseTypeToColor(type))
+                                            .height(35.dp)
+                                    ) {
+                                        Text(
+                                            text = type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() },
+                                            color = Color.White,
+                                            fontSize = 18.sp,
+                                            modifier = Modifier
+                                                .padding(horizontal = 8.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp)
+                        .background(Color.Black)
+                )
+
+                Column {
+                    Text(
+                        text = "Defense",
+                        fontFamily = RobotoCondensed,
+                        fontSize = 30.sp,
+                        textAlign = TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp)
+                    )
+
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(Color.Black)
+                    )
+
+                    typeEffectivenessMap["defensive"]?.entries
+                        ?.sortedByDescending { it.key }
+                        ?.forEach { (key, typeList) ->
+                            Row(verticalAlignment = Alignment.Top, modifier = Modifier
+                                .fillMaxWidth()
+                                .wrapContentWidth()
+                                .padding(vertical = 16.dp, horizontal = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Takes ${key}x:",
+                                    fontFamily = RobotoCondensed,
+                                    fontSize = 20.sp,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .width(75.dp)
+                                )
+
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    typeList.forEach { type ->
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .background(parseTypeToColor(type))
+                                                .height(35.dp)
+                                        ) {
+                                            Text(
+                                                text = type.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() },
+                                                color = Color.White,
+                                                fontSize = 18.sp,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                }
+            }
         }
     }
 }

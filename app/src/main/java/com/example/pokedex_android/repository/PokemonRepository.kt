@@ -1,8 +1,8 @@
 package com.example.pokedex_android.repository
 
 import PokemonData
+import PokemonEffectiveness
 import android.content.Context
-import com.example.pokedex_android.data.local.responses.LocalPokemon
 import com.example.pokedex_android.data.remote.PokeApi
 import com.example.pokedex_android.data.remote.responses.Pokemon
 import com.example.pokedex_android.data.remote.responses.PokemonList
@@ -42,5 +42,14 @@ class PokemonRepository @Inject constructor(
         }
         val withUnknownKeys = Json { ignoreUnknownKeys = true }
         return withUnknownKeys.decodeFromString(jsonString)
+    }
+
+    fun loadPokemonEffectiveness(): PokemonEffectiveness {
+        val jsonString = context.assets.open("TypeEffectiveness.json").use { inputStream ->
+            InputStreamReader(inputStream).readText()
+        }
+
+        val withUnknownKeys = Json { ignoreUnknownKeys = true }
+        return withUnknownKeys.decodeFromString<PokemonEffectiveness>(jsonString)
     }
 }

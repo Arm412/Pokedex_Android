@@ -42,13 +42,15 @@ class PokemonDetailViewModel @Inject constructor(
     }
 
     fun setEvolutionObjects() {
-        val currentPokemonData = localPokemonData.value.get(id.value - 1)
-        currentPokemonData.evolution.prev?.let {
-            prevEvolution.value = createPrevEvolutionObject(currentPokemonData.evolution.prev)
-        }
+        if (id.intValue - 1 <= 898) {
+            val currentPokemonData = localPokemonData.value.get(id.intValue - 1)
+            currentPokemonData.evolution.prev?.let {
+                prevEvolution.value = createPrevEvolutionObject(currentPokemonData.evolution.prev)
+            }
 
-        if (currentPokemonData.evolution.next?.isNotEmpty() == true) {
-            nextEvolution = createNextEvolutionObject(currentPokemonData.evolution.next)
+            if (currentPokemonData.evolution.next?.isNotEmpty() == true) {
+                nextEvolution = createNextEvolutionObject(currentPokemonData.evolution.next)
+            }
         }
     }
 
@@ -106,6 +108,14 @@ class PokemonDetailViewModel @Inject constructor(
 
         }
         return typeEffectivenessMap
+    }
+
+    fun getPokemonLocalInfo(id: Int): PokemonData? {
+        if (id > 898) {
+            return null
+        } else {
+            return localPokemonData.value[id]
+        }
     }
 
     private fun fetchLocalPokemonData() {

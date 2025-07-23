@@ -88,7 +88,7 @@ fun PokemonDetailScreen(
     }
 
     LaunchedEffect(id) {
-        viewModel.id.value = id
+        viewModel.id.intValue = id
         viewModel.setEvolutionObjects()
     }
 
@@ -232,7 +232,7 @@ fun PokemonDetailSection(
     modifier: Modifier = Modifier,
     viewModel: PokemonDetailViewModel
 ) {
-    val pokemonInfoLocal = viewModel.localPokemonData.value[pokemonInfo.id - 1]
+    val pokemonLocalInfo = viewModel.getPokemonLocalInfo(pokemonInfo.id - 1)
 
     val pokemonName = pokemonInfo.name.replaceFirstChar {
         if (it.isLowerCase()) it.titlecase(
@@ -269,20 +269,25 @@ fun PokemonDetailSection(
 
             )
         }
-        PokemonTypeSection(types = viewModel.localPokemonData.value[pokemonInfo.id - 1].type)
-        PokemonEffectivenessSection(
-            currentPokemonTypes = viewModel.localPokemonData.value[pokemonInfo.id - 1].type,
-            typeEffectiveness = viewModel.pokemonEffectivenessData.value,
-            pokemonInfo = pokemonInfo,
-            viewModel = viewModel)
+        if (pokemonLocalInfo != null) {
+            PokemonTypeSection(types = pokemonLocalInfo.type)
+            PokemonEffectivenessSection(
+                currentPokemonTypes = pokemonLocalInfo.type,
+                typeEffectiveness = viewModel.pokemonEffectivenessData.value,
+                pokemonInfo = pokemonInfo,
+                viewModel = viewModel
+            )
+        }
         PokemonDetailDataSection(
             pokemonWeight = pokemonInfo.weight,
             pokemonHeight = pokemonInfo.height
         )
-        PokemonDescriptionSection(
-            species = pokemonInfoLocal.species,
-            description = pokemonInfoLocal.description
-        )
+        if (pokemonLocalInfo != null) {
+            PokemonDescriptionSection(
+                species = pokemonLocalInfo.species,
+                description = pokemonLocalInfo.description
+            )
+        }
         PokemonEvolutionSection(viewModel = viewModel, navController = navController)
         PokemonBaseStats(pokemonInfo = pokemonInfo)
     }
